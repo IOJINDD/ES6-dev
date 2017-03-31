@@ -1,0 +1,6 @@
+#npm
+/node_modules
+
+#bundle files
+/app/bundle
+/app/js
