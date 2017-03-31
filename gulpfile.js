@@ -1,11 +1,12 @@
-var gulp = require('gulp');
-var babel = require('gulp-babel');
-var connect = require('gulp-connect');
-var browserify = require('gulp-browserify');
-var uglify = require('gulp-uglify');
-var rename = require('gulp-rename');
-var gulpsync = require('gulp-sync')(gulp);
+var gulp = require('gulp'),
+    babel = require('gulp-babel'),
+    connect = require('gulp-connect'),
+    browserify = require('gulp-browserify'),
+    uglify = require('gulp-uglify'),
+    rename = require('gulp-rename'),
+    gulpsync = require('gulp-sync')(gulp);
 
+// 定义解析es6的任务
 gulp.task('compile-es6', function() {
   return gulp.src('app/es6/*')
     .pipe(babel({
@@ -14,33 +15,25 @@ gulp.task('compile-es6', function() {
     .pipe(gulp.dest('app/js'));
 });
 
+// 讲解析出来的js打包
 gulp.task('pack-js', function() {
   return gulp.src('app/js/main.js')
     .pipe(browserify())
-    .pipe(rename('bundle.js'))
-    .pipe(gulp.dest('app/bundle'));
-});
-
-gulp.task('compress-bundle', function() {
-  return gulp.src('app/bundle/bundle.js')
     .pipe(uglify())
-    .pipe(rename('bundle.min.js'))
+    .pipe(rename('app.js'))
     .pipe(gulp.dest('app/bundle'));
 });
 
-//build source files to released bundle file
-gulp.task('build', gulpsync.sync(['compile-es6', 'pack-js', 'compress-bundle']), function() {
-  if (process.argv.pop() == '--dev') {
-    //watch any change and then re-run the tasks
-    gulp.watch('app/es6/*', gulpsync.sync(['compile-es6', 'pack-js', 'compress-bundle']));
-  }
-});
+// 定义监听任务
+gulp.task('watch', function () {
+  gulp.watch('./app/es6/*', gulpsync.sync(['compile-es6', 'pack-js']));
+})
 
 //run a server listening at port 8000
-gulp.task('server', function() {
+gulp.task('server', gulpsync.sync(['compile-es6', 'pack-js', 'watch']), function() {
   connect.server({
     root: 'app',
-    port: 8000,
+    port: 3000,
     livereload: true
   });
 });
